@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataviz Roulette Machine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand+SC&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-color: #f9f7f1;
+            --crayon-red: #ff4d4d;
+            --crayon-blue: #4d79ff;
+            --crayon-green: #4dff88;
+            --crayon-yellow: #fff200;
+            --crayon-black: #2c2c2c;
+            --border-width: 3px;
+        }
+
+        body {
+            background-color: var(--paper-color);
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Gochi Hand', cursive;
+            color: var(--crayon-black);
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Patrick Hand SC', cursive;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding-bottom: 100px;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 40px;
+            transform: rotate(-2deg);
+        }
+        
+        header h1 {
+            font-size: 3rem;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+            color: var(--crayon-black);
+        }
+
+        .machine-module {
+            background: white;
+            border: var(--border-width) solid var(--crayon-black);
+            padding: 25px;
+            position: relative;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease;
+            z-index: 2;
+            border-radius: 20px;
+        }
+
+        .machine-module::before, .machine-module::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid var(--crayon-black);
+            background: #ddd;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+        .machine-module::before { left: 10px; }
+        .machine-module::after { right: 10px; }
+
+        .machine-blue { border-color: #2a4480; transform: rotate(1deg); }
+        .machine-blue h2 { color: #2a4480; }
+
+        .machine-green { border-color: #2a803b; transform: rotate(-1deg); }
+        .machine-green h2 { color: #2a803b; }
+
+        .machine-red {
+            border-color: #802a2a;
+            transform: rotate(0.5deg);
+            min-height: 140px;
+            padding-bottom: 10px;
+        }
+        .machine-red h2 { color: #802a2a; }
+
+        .connector-pipe {
+            height: 60px;
+            width: 40px;
+            background: transparent;
+            border-left: 4px solid var(--crayon-black);
+            border-right: 4px solid var(--crayon-black);
+            margin: -5px auto;
+            position: relative;
+            z-index: 1;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);
+        }
+        
+        .connector-pipe.flowing {
+            background-image: repeating-linear-gradient(45deg, var(--crayon-yellow), var(--crayon-yellow) 10px, var(--paper-color) 10px, var(--paper-color) 20px);
+            animation: flowPipe 1s linear infinite;
+        }
+
+        .gear {
+            position: absolute;
+            z-index: 3;
+            fill: #e0e0e0;
+            stroke: var(--crayon-black);
+            stroke-width: 8px;
+            stroke-linejoin: round;
+            overflow: visible;
+        }
+        
+        .gear-sm { width: 35px; height: 35px; top: -17px; right: 40px; }
+        .gear-md { width: 55px; height: 55px; bottom: -25px; left: -25px; fill: #d4d4d4; }
+        .gear-lg { width: 80px; height: 80px; top: 50%; right: -40px; fill: #ccc; }
+
+        .spinning { animation: spin 2s linear infinite; }
+
+        .status-light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--crayon-black);
+            background-color: #444;
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        .status-light.processing { background-color: var(--crayon-yellow); box-shadow: 0 0 10px var(--crayon-yellow); animation: blink 0.5s infinite alternate; }
+        .status-light.done { background-color: var(--crayon-green); box-shadow: 0 0 5px var(--crayon-green); }
+        
+        .chimney { position: absolute; top: -20px; left: 20px; width: 20px; height: 30px; background: #333; border: 2px solid black; transform: skew(-5deg); }
+        .smoke { position: absolute; top: -30px; left: 20px; font-size: 20px; opacity: 0; pointer-events: none; }
+        .puffing .smoke { animation: rise 2s infinite; }
+        .puffing .smoke:nth-child(2) { animation-delay: 0.5s; }
+        .puffing .smoke:nth-child(3) { animation-delay: 1s; }
+
+        .explosion-particle { position: absolute; width: 30px; height: 30px; background: #555; border-radius: 50%; opacity: 0; z-index: 10; }
+        .exploding .explosion-particle { animation: explode 0.8s ease-out forwards; }
+
+        .input-group { margin: 15px 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 1.4rem; }
+
+        input, select, textarea {
+            font-family: 'Gochi Hand', cursive;
+            font-size: 1.2rem;
+            border: 2px solid var(--crayon-black);
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            outline: none;
+            min-width: 100px;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+
+        button {
+            font-family: 'Patrick Hand SC', cursive;
+            font-size: 1.5rem;
+            border: 3px solid var(--crayon-black);
+            padding: 10px 30px;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button:hover { transform: translateY(-2px); }
+        button:active { transform: translateY(2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.2); }
+
+        .btn-blue { background-color: var(--crayon-blue); color: white; }
+        .btn-green { background-color: var(--crayon-green); color: var(--crayon-black); }
+        .btn-red { background-color: var(--crayon-red); color: white; }
+
+        .output-slot {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eee;
+            border-top: 4px solid #333;
+            border-left: 2px solid #ccc;
+            border-right: 2px solid #ccc;
+            border-bottom: 2px solid #ccc;
+            font-size: 1.1rem;
+            min-height: 40px;
+            white-space: pre-wrap;
+            position: relative;
+            overflow: hidden;
+            display: block;
+        }
+
+        .print-tray { margin-top: 14px; padding: 0; perspective: 1000px; display: flex; justify-content: center; }
+        .printed-paper { background: white; padding: 15px; border: 1px solid #ccc; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transform-origin: top; animation: printPaper 3s ease-out forwards; display: none; margin-top: 20px; }
+        #generatedImage { max-width: 100%; height: auto; border: 2px solid black; }
+        .printed-paper.developing #generatedImage { opacity: 0.2; filter: blur(6px) grayscale(100%) sepia(10%); }
+        .printed-paper.developing { animation: printPaper 3s ease-out forwards, developPhoto 4s ease-out forwards; }
+        .print-meta { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; font-size: 0.85rem; }
+        .print-source { color: #444; }
+        .btn-download { margin-top: 12px; background: #222; color: #fff; border-color: #111; }
+        .printer-slot {
+            width: 72%;
+            height: 44px;
+            margin: 10px auto 0;
+            background: #f2f2f2;
+            border: 3px solid #333;
+            border-radius: 10px;
+            box-shadow: inset 0 8px 12px rgba(0,0,0,0.18);
+            position: relative;
+        }
+        .printer-slot::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -8px;
+            width: 66%;
+            height: 14px;
+            background: #d6d6d6;
+            border: 3px solid #333;
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            box-shadow: inset 0 6px 8px rgba(0,0,0,0.2);
+        }
+        .printer-slot::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -2px;
+            width: 58%;
+            height: 6px;
+            background: #444;
+            border-radius: 6px;
+            box-shadow: inset 0 2px 2px rgba(0,0,0,0.4);
+        }
+        .printer-output { margin-top: -8px; }
+
+        .loading-text { display: none; text-align: center; font-size: 1.2rem; color: #666; margin-top: 10px; }
+        .source-tag { font-size: 0.8rem; background: #fff; padding: 2px 8px; border: 1px dashed #999; transform: rotate(-1deg); display: inline-block; margin-top: 10px; color: #555; text-decoration: none; }
+
+        /* --- INDUSTRIAL FEATURES --- */
+        .ethics-control { position: absolute; top: 20px; right: 80px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .ethics-label { font-size: 0.7rem; font-weight: bold; color: #555; }
+        .toggle-switch { width: 40px; height: 20px; background: #ccc; border-radius: 10px; border: 2px solid #333; position: relative; cursor: pointer; }
+        .toggle-knob { width: 14px; height: 14px; background: #fff; border: 1px solid #333; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: left 0.2s; }
+        .toggle-switch.on { background: #4dff88; }
+        .toggle-switch.on .toggle-knob { left: 20px; }
+
+        .verified-badge { position: absolute; top: 10px; right: 70px; display: flex; align-items: center; gap: 5px; background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid #000; }
+        .verified-text { color: white; font-size: 0.6rem; font-family: sans-serif; font-weight: bold; letter-spacing: 1px; }
+        .verified-bulb { width: 10px; height: 10px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 5px #ff0000; animation: quickBlink 0.8s infinite; }
+
+        .trust-meter-shell { position: absolute; top: 20px; right: 20px; width: 160px; display: flex; justify-content: center; }
+        .trust-meter-shell svg { width: 100%; height: auto; }
+        .trust-label { position: absolute; top: 185px; right: 20px; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.2em; text-transform: uppercase; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes flowPipe { 0% { background-position: 0 0; } 100% { background-position: 0 30px; } }
+        @keyframes blink { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes quickBlink { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        @keyframes rise { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-40px) scale(2); opacity: 0; } }
+        @keyframes rumble { 0% { transform: translate(0, 0) rotate(1deg); } 25% { transform: translate(-2px, 2px) rotate(1deg); } 50% { transform: translate(2px, -2px) rotate(1deg); } 75% { transform: translate(-2px, -2px) rotate(1deg); } 100% { transform: translate(0, 0) rotate(1deg); } }
+        @keyframes printPaper { 0% { transform: translateY(-100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(3); opacity: 0; } }
+        .rumbling { animation: rumble 0.2s infinite; }
+        @keyframes developPhoto { 0% { filter: blur(6px) grayscale(100%) sepia(10%); opacity: 0.2; } 100% { filter: blur(0) grayscale(0%) sepia(0%); opacity: 1; } }
+        .accordion {
+            margin-top: 20px;
+        }
+        .accordion-header {
+            width: 100%;
+            background: #222;
+            color: #fff;
+            border: 2px solid #111;
+            padding: 10px 15px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .accordion-header::after { content: '\25bc'; margin-left: 10px; transition: transform 0.2s ease; }
+        .accordion-header[aria-expanded="true"]::after { transform: rotate(180deg); }
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+        .accordion-body.expanded {
+            max-height: 1200px;
+        }
+    </style>
+</head>
+<body>
+
+    <svg aria-hidden="true" focusable="false" style="position:absolute; width:0; height:0; overflow:hidden;">
+        <defs>
+            <filter id="crayon">
+                <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"/>
+            </filter>
+            <symbol id="crayon-gear" viewBox="0 0 220 220">
+                <g filter="url(#crayon)" stroke="#555" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+                    <g fill="#C7C7C7">
+                        <rect x="100" y="12" width="20" height="38" rx="8"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(30 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(60 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(90 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(120 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(150 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(180 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(210 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(240 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(270 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(300 110 110)"/>
+                        <rect x="100" y="12" width="20" height="38" rx="8" transform="rotate(330 110 110)"/>
+                    </g>
+                    <circle cx="110" cy="110" r="60" fill="#AFAFAF"/>
+                    <circle cx="110" cy="110" r="22" fill="#E5E5E5"/>
+                </g>
+            </symbol>
+        </defs>
+    </svg>
+
+    <header><h1>🔥 DataViz Machine v2.0 🔥</h1></header>
+
+    <div class="container">
+        <!-- MODULE 1 -->
+        <div class="machine-module machine-blue" id="machine1">
+            <div class="chimney"></div><div class="smoke">☁️</div><div class="smoke">☁️</div><div class="smoke">☁️</div>
+            <svg class="gear gear-sm" viewBox="0 0 220 220"><use href="#crayon-gear"></use></svg>
+            <div class="status-light" id="light1"></div>
+            <div class="ethics-control"><div class="ethics-label">ETHICS</div><div class="toggle-switch" onclick="toggleEthics(this)"><div class="toggle-knob"></div></div></div>
+            <h2>1. Data Engine</h2>
+            <div class="input-group">
+                <span>Visualize the</span>
+                <input type="text" id="inpAdjective" placeholder="Adjective">
+                <input type="text" id="inpNoun" placeholder="Noun">
+                <select id="inpPrep"><option value="of">of</option><option value="in">in</option><option value="on">on</option><option value="at">at</option><option value="about">about</option><option value="during">during</option><option value="with">with</option><option value="without">without</option><option value="from">from</option><option value="for">for</option></select>
+                <input type="text" id="inpContext" placeholder="Context">
+            </div>
+            <div class="input-group">
+                <span>Style Module:</span>
+                <select id="graphStyle">
+                    <option value="crayon bar chart">Crayon Bar Chart</option>
+                    <option value="hand-drawn pie chart">Messy Pie Chart</option>
+                    <option value="scribbled line graph">Wobbly Line Graph</option>
+                    <option value="scatter plot with stickers">Scatter Plot w/ Stickers</option>
+                    <option value="crayon heatmap">Crayon Heatmap</option>
+                    <option value="stacked graph with doodles">Stacked Graph</option>
+                    <option value="Chernoff faces drawn by a child">Chernoff Faces</option>
+                    <option value="hand-drawn geomap">Geomap</option>
+                </select>
+            </div>
+            <button class="btn-blue" onclick="runMachine1()">Start 🔘</button>
+            <div id="loader1" class="loading-text">Engines roaring... fetching data...</div>
+            <div class="accordion">
+                <button class="accordion-header" type="button" aria-expanded="false" aria-controls="accordionBody1" data-target="accordionBody1">View dataset</button>
+                <div id="accordionBody1" class="accordion-body">
+                    <div id="output1" class="output-slot"></div>
+                    <div id="sourceContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="connector-pipe" id="pipe1"></div>
+
+        <!-- MODULE 2 -->
+        <div class="machine-module machine-green" id="machine2" style="opacity: 0.7; pointer-events: none;">
+            <svg class="gear gear-md" viewBox="0 0 220 220"><use href="#crayon-gear"></use></svg>
+            <div class="status-light" id="light2"></div>
+            <div class="verified-badge"><span class="verified-text">DATA VERIFIED</span><div class="verified-bulb"></div></div>
+            <h2>2. Art Logic Unit</h2>
+            <p style="font-size: 0.9rem;">Translating raw data into artistic instructions...</p>
+            <p style="font-size: 0.85rem; margin: 10px 0 0;"></p>
+            <div id="loader2" class="loading-text">Computing artistic variables...</div>
+            <div class="accordion">
+                <button class="accordion-header" type="button" aria-expanded="false" aria-controls="accordionBody2" data-target="accordionBody2">View art prompt</button>
+                <div id="accordionBody2" class="accordion-body">
+                    <div class="output-slot" style="padding: 0;">
+                        <textarea id="promptOutput" style="border:none; background:transparent; padding:10px;" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="connector-pipe" id="pipe2"></div>
+
+        <!-- MODULE 3 -->
+        <div class="machine-module machine-red" id="machine3" style="opacity: 0.7; pointer-events: none;">
+            <svg class="gear gear-lg" viewBox="0 0 220 220"><use href="#crayon-gear"></use></svg>
+            <div class="status-light" id="light3"></div>
+            <div class="trust-meter-shell">
+                <svg viewBox="0 0 400 250" role="img" aria-label="Trust meter dial">
+                    <defs>
+                        <filter id="trust-crayon">
+                            <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" result="noise"/>
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5"/>
+                        </filter>
+                    </defs>
+                    <g filter="url(#trust-crayon)" stroke="#555" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M50 200 A150 150 0 0 1 350 200" fill="none" stroke="#777"/>
+                        <g stroke="#666" stroke-width="5">
+                            <line x1="50" y1="200" x2="70" y2="185"/>
+                            <line x1="125" y1="100" x2="140" y2="120"/>
+                            <line x1="200" y1="50" x2="200" y2="75"/>
+                            <line x1="275" y1="100" x2="260" y2="120"/>
+                            <line x1="350" y1="200" x2="330" y2="185"/>
+                        </g>
+                        <g id="trustNeedle" transform="rotate(-90 200 200)">
+                            <line x1="200" y1="200" x2="200" y2="90" stroke="#444" stroke-width="8"/>
+                            <circle cx="200" cy="200" r="12" fill="#999"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <h2 style="margin-right: 120px;">3. The Printer</h2>
+            <p style="font-size: 0.9rem; margin-right: 120px;">Rendering pixels onto virtual paper...</p>
+            <div id="loader3" class="loading-text">Ink levels low... printing anyway...</div>
+        </div>
+
+        <div class="printer-output">
+            <div class="printer-slot"></div>
+            <div class="print-tray">
+                <div id="paperSheet" class="printed-paper">
+                    <img id="generatedImage" alt="Waiting for print job...">
+                    <div class="print-meta">
+                        <div id="printSource" class="print-source"></div>
+                        <div id="printSubject"></div>
+                    </div>
+                    <button id="downloadBtn" class="btn-download" style="display:none;" onclick="downloadImage()">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "REPLACE_WITH_OPENAI_API_KEY";
+        const OPENAI_TEXT_MODEL = "gpt-5";
+        const OPENAI_IMAGE_MODEL = "gpt-image-1";
+
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            let delay = 1000;
+            for (let i = 0; i <= maxRetries; i++) {
+                try {
+                    console.log('[API] Request', { url, options });
+                    const response = await fetch(url, options);
+                    console.log('[API] Response', { url, status: response.status, ok: response.ok });
+                    if (response.ok) return await response.json();
+                    if (response.status === 403 || response.status === 401) {
+                        const errData = await response.json();
+                        throw new Error(`API KEY ERROR: ${errData.error?.message || "Missing or invalid key"}`);
+                    }
+                    if (response.status === 400) {
+                        const errData = await response.json();
+                        throw new Error(`BAD REQUEST: ${errData.error?.message || "Verify your prompt or settings."}`);
+                    }
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(`HTTP ${response.status}: ${errData.error?.message || "Request failed."}`);
+                } catch (err) {
+                    console.error('[API] Error', err);
+                    if (i === maxRetries || err.message.includes("API KEY") || err.message.includes("BAD REQUEST")) throw err;
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+        }
+
+        let currentDataset = "", currentSubject = "", currentSourceInfo = "";
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'click') { osc.type = 'square'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1); gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1); osc.start(now); osc.stop(now + 0.1); }
+            else if (type === 'motor') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(80, now); osc.frequency.linearRampToValueAtTime(120, now + 0.5); gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.5); osc.start(now); osc.stop(now + 0.5); }
+            else if (type === 'print') { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2); osc.start(now); osc.stop(now + 0.2); }
+            else if (type === 'explosion') { const bufferSize = audioCtx.sampleRate * 0.5, buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate), data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; const noise = audioCtx.createBufferSource(); noise.buffer = buffer; const noiseGain = audioCtx.createGain(); noise.connect(noiseGain); noiseGain.connect(audioCtx.destination); noiseGain.gain.setValueAtTime(0.2, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5); noise.start(now); }
+        }
+
+        function toggleEthics(el) { el.classList.toggle('on'); playSound('click'); }
+
+        function setMachineState(machineId, state) {
+            const machine = document.getElementById(`machine${machineId}`), light = document.getElementById(`light${machineId}`), gears = machine.querySelectorAll('.gear');
+            if (state === 'running') { machine.classList.add('rumbling'); if(machineId === 1) machine.classList.add('puffing'); light.classList.remove('done'); light.classList.add('processing'); gears.forEach(g => g.classList.add('spinning')); playSound('motor'); }
+            else if (state === 'done') { machine.classList.remove('rumbling', 'puffing'); light.classList.remove('processing'); light.classList.add('done'); gears.forEach(g => g.classList.remove('spinning')); playSound('print'); }
+            else { machine.classList.remove('rumbling', 'puffing'); light.classList.remove('processing', 'done'); gears.forEach(g => g.classList.remove('spinning')); }
+        }
+
+        function triggerSmokeExplosion() {
+            const container = document.getElementById('machine3'); playSound('explosion');
+            for(let i=0; i<8; i++) {
+                const p = document.createElement('div'); p.className = 'explosion-particle'; p.style.left = '50%'; p.style.top = '50%';
+                const tx = (Math.random() - 0.5) * 200 + 'px', ty = (Math.random() - 0.5) * 200 + 'px';
+                p.style.setProperty('--tx', tx); p.style.setProperty('--ty', ty); container.appendChild(p); container.classList.add('exploding'); setTimeout(() => p.remove(), 1000);
+            }
+            setTimeout(() => container.classList.remove('exploding'), 1000);
+        }
+
+        let trustWiggleId = null;
+        function smoothScrollTo(targetId, block = 'start') {
+            const el = document.getElementById(targetId);
+            if (!el) return;
+            setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block }), 60);
+        }
+
+        function updateTrustNeedle(angle) {
+            const needle = document.getElementById('trustNeedle');
+            if (!needle) return;
+            needle.setAttribute('transform', `rotate(${angle} 200 200)`);
+        }
+
+        function startTrustWiggle() {
+            if (trustWiggleId) return;
+            let angle = -90;
+            let direction = 1;
+            trustWiggleId = setInterval(() => {
+                angle += direction * 4;
+                if (angle >= -30) direction = -1;
+                if (angle <= -90) direction = 1;
+                updateTrustNeedle(angle);
+            }, 90);
+        }
+
+        function stopTrustWiggle(finalAngle = -20) {
+            if (trustWiggleId) { clearInterval(trustWiggleId); trustWiggleId = null; }
+            updateTrustNeedle(finalAngle);
+        }
+
+        function registerAccordions() {
+            document.querySelectorAll('.accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.dataset?.target;
+                    const body = document.getElementById(targetId);
+                    if (!body) return;
+                    const isExpanded = header.getAttribute('aria-expanded') === 'true';
+                    header.setAttribute('aria-expanded', (!isExpanded).toString());
+                    body.classList.toggle('expanded', !isExpanded);
+                });
+            });
+        }
+
+        function updatePrintMeta() {
+            const srcEl = document.getElementById('printSource');
+            const subjEl = document.getElementById('printSubject');
+            if (srcEl) srcEl.textContent = currentSourceInfo ? `Source: ${currentSourceInfo}` : "";
+            if (subjEl) subjEl.textContent = currentSubject ? `Subject: The ${currentSubject}` : "";
+        }
+
+        function ensureSource() {
+            if (currentSourceInfo && currentSourceInfo.trim()) return;
+            const pool = [
+                "Imaginary Institute",
+                "National Doodle Bureau",
+                "Chartopia Research",
+                "Crayon Metrics Lab",
+                "Data Sketch Society",
+                "Institute of Playful Stats"
+            ];
+            currentSourceInfo = pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function downloadImage() {
+            const img = document.getElementById('generatedImage');
+            if (!img?.src) return;
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `dataviz-${(currentSubject || 'visual').replace(/\\s+/g, '-').toLowerCase()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        async function runMachine1() {
+            playSound('click');
+            const adj = document.getElementById('inpAdjective').value || "average", noun = document.getElementById('inpNoun').value || "objects", prep = document.getElementById('inpPrep').value, context = document.getElementById('inpContext').value || "the void";
+            currentSubject = `${adj} ${noun} ${prep} ${context}`;
+            setMachineState(1, 'running');
+            document.getElementById('loader1').style.display = 'block';
+            document.getElementById('sourceContainer').innerHTML = '';
+            currentSourceInfo = "";
+            currentDataset = "";
+
+            ensureSource();
+            document.getElementById('output1').textContent = `Subject locked: The ${currentSubject}`;
+            updatePrintMeta();
+            setMachineState(1, 'done'); document.getElementById('pipe1').classList.add('flowing');
+            const m2 = document.getElementById('machine2'); m2.style.opacity = '1'; m2.style.pointerEvents = 'auto';
+            smoothScrollTo('machine2');
+            document.getElementById('loader1').style.display = 'none';
+            runMachine2();
+        }
+
+        async function runMachine2() {
+            playSound('click');
+            setMachineState(2, 'running');
+            document.getElementById('loader2').style.display = 'block';
+            const prompt = `Topic: "The ${currentSubject}". Generate a creative dataset and then a concise art prompt.\n\nFORMAT:\nDATA_START\nItem: Value\nDATA_END\nSOURCE_NAME: [Name]\nPROMPT_START\n[Crayon drawing prompt for a ${document.getElementById('graphStyle').value}]\nPROMPT_END`;
+            try {
+                const data = await fetchWithRetry("https://api.openai.com/v1/responses", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify({ model: OPENAI_TEXT_MODEL, input: prompt })
+                });
+                console.log('[API] Raw response (machine2)', data);
+                console.log('[API] Output array (machine2)', data.output);
+                const extractTextFromOutput = (out) => {
+                    if (!Array.isArray(out)) return "";
+                    for (const item of out) {
+                        if (item?.type === "message" && Array.isArray(item.content)) {
+                            const part =
+                                item.content.find(p => p.type === "output_text") ||
+                                item.content.find(p => p.type === "text") ||
+                                item.content.find(p => typeof p.text === "string");
+                            if (part?.text) return part.text;
+                        }
+                        if (typeof item?.text === "string") return item.text;
+                    }
+                    return "";
+                };
+
+                const text =
+                    data.output_text ||
+                    extractTextFromOutput(data.output) ||
+                    "";
+                if (!text) throw new Error('Unexpected response shape from OpenAI (missing text)');
+
+                if (text.includes("DATA_START") && text.includes("DATA_END")) {
+                    currentDataset = text.split("DATA_START")[1].split("DATA_END")[0].trim();
+                    document.getElementById('output1').textContent = currentDataset;
+                } else {
+                    currentDataset = "";
+                    document.getElementById('output1').textContent = "Dataset missing in response.";
+                }
+
+                if (text.includes("SOURCE_NAME:")) {
+                    currentSourceInfo = text.split("SOURCE_NAME:")[1]?.split("\n")[0].trim() || "Imaginary Institute";
+                }
+                ensureSource();
+                document.getElementById('sourceContainer').innerHTML = `<span class="source-tag">Source: ${currentSourceInfo}</span>`;
+                updatePrintMeta();
+
+                if (text.includes("PROMPT_START") && text.includes("PROMPT_END")) {
+                    document.getElementById('promptOutput').value = text.split("PROMPT_START")[1].split("PROMPT_END")[0].trim();
+                } else {
+                    document.getElementById('promptOutput').value = text.trim();
+                }
+                setMachineState(2, 'done'); document.getElementById('pipe2').classList.add('flowing');
+                const m3 = document.getElementById('machine3'); m3.style.opacity = '1'; m3.style.pointerEvents = 'auto';
+                smoothScrollTo('machine3');
+                runMachine3();
+            } catch (error) { setMachineState(2, 'idle'); } finally { document.getElementById('loader2').style.display = 'none'; }
+        }
+
+        async function runMachine3() {
+            playSound('click');
+            const promptVal = document.getElementById('promptOutput').value;
+            if (!promptVal) return;
+            
+            setMachineState(3, 'running');
+            document.getElementById('loader3').style.display = 'block';
+            startTrustWiggle();
+            
+            try {
+                const body = {
+                    model: OPENAI_IMAGE_MODEL,
+                    prompt: `${promptVal}, crayon style drawing`,
+                    size: "1024x1024"
+                };
+                if (OPENAI_IMAGE_MODEL.startsWith("dall-e")) {
+                    body.response_format = "b64_json";
+                }
+
+                const data = await fetchWithRetry("https://api.openai.com/v1/images/generations", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify(body)
+                });
+
+                const imageData = data.data?.[0]?.b64_json;
+                if (!imageData) throw new Error("No image data returned from OpenAI.");
+
+                document.getElementById('generatedImage').src = `data:image/png;base64,${imageData}`;
+                document.getElementById('paperSheet').style.display = 'block';
+                document.getElementById('paperSheet').classList.add('developing');
+                const dlBtn = document.getElementById('downloadBtn');
+                if (dlBtn) dlBtn.style.display = 'inline-block';
+                setMachineState(3, 'done');
+                triggerSmokeExplosion();
+                stopTrustWiggle(45);
+                smoothScrollTo('generatedImage', 'center');
+                setTimeout(() => {
+                    document.getElementById('paperSheet').classList.remove('developing');
+                }, 4500);
+
+            } catch (error) { 
+                console.error("Image Error:", error);
+                const outputSlot = document.createElement('div');
+                outputSlot.style.color = 'red';
+                outputSlot.style.fontSize = '0.8rem';
+                outputSlot.textContent = "Error: " + error.message;
+                document.getElementById('machine3').appendChild(outputSlot);
+                stopTrustWiggle(-80);
+                setMachineState(3, 'idle'); 
+            } finally { 
+                document.getElementById('loader3').style.display = 'none'; 
+            }
+        }
+        updateTrustNeedle(-90);
+        registerAccordions();
+    </script>
+</body>
+</html>
