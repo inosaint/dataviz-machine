@@ -1,8 +1,11 @@
 const ALLOWED_ENDPOINTS = new Set(["responses", "images/generations"]);
 const ALLOWED_ORIGINS = new Set(["https://dataviz-machine.netlify.app"]);
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_MAX = 5;
+const DAILY_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+const DAILY_LIMIT_MAX = 100;
 const rateLimitStore = new Map();
+const dailyLimitStore = new Map();
 
 function getClientIp(event) {
   return (
@@ -39,6 +42,18 @@ function rateLimitOk(ip) {
   return entry.count <= RATE_LIMIT_MAX;
 }
 
+function dailyLimitOk(ip) {
+  const now = Date.now();
+  const entry = dailyLimitStore.get(ip) || { count: 0, start: now };
+  if (now - entry.start >= DAILY_LIMIT_WINDOW_MS) {
+    entry.count = 0;
+    entry.start = now;
+  }
+  entry.count += 1;
+  dailyLimitStore.set(ip, entry);
+  return entry.count <= DAILY_LIMIT_MAX;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return {
@@ -61,7 +76,15 @@ exports.handler = async (event) => {
     return {
       statusCode: 429,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: { message: "Rate limit exceeded" } }),
+      body: JSON.stringify({ error: { message: "Rate limit exceeded (5 per minute)" } }),
+    };
+  }
+
+  if (!dailyLimitOk(clientIp)) {
+    return {
+      statusCode: 429,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: { message: "Daily limit exceeded (100 per day)" } }),
     };
   }
 
