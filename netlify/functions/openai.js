@@ -1,5 +1,8 @@
 const ALLOWED_ENDPOINTS = new Set(["responses", "images/generations"]);
-const ALLOWED_ORIGINS = new Set(["https://dataviz-machine.netlify.app"]);
+const ALLOWED_ORIGINS = new Set([
+  "https://dataviz-machine.netlify.app",
+  "http://localhost:8888",
+]);
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX = 5;
 const DAILY_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -52,6 +55,14 @@ function dailyLimitOk(ip) {
   entry.count += 1;
   dailyLimitStore.set(ip, entry);
   return entry.count <= DAILY_LIMIT_MAX;
+}
+
+let fetchFn = globalThis.fetch;
+async function getFetch() {
+  if (fetchFn) return fetchFn;
+  const mod = await import("node-fetch");
+  fetchFn = mod.default;
+  return fetchFn;
 }
 
 exports.handler = async (event) => {
@@ -119,14 +130,26 @@ exports.handler = async (event) => {
   }
 
   const upstream = `https://api.openai.com/v1/${endpoint}`;
-  const upstreamResp = await fetch(upstream, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload || {}),
-  });
+  let upstreamResp;
+  try {
+    const fetch = await getFetch();
+    upstreamResp = await fetch(upstream, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload || {}),
+    });
+  } catch (err) {
+    return {
+      statusCode: 502,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        error: { message: `Upstream request failed: ${err?.message || "unknown error"}` },
+      }),
+    };
+  }
 
   const text = await upstreamResp.text();
   return {
