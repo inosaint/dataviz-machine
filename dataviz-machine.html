@@ -454,7 +454,7 @@
     </div>
 
     <script>
-        const apiKey = "REPLACE_WITH_OPENAI_API_KEY";
+        const OPENAI_PROXY_ENDPOINT = "/.netlify/functions/openai";
         const OPENAI_TEXT_MODEL = "gpt-5";
         const OPENAI_IMAGE_MODEL = "gpt-image-1";
 
@@ -618,10 +618,13 @@
             document.getElementById('loader2').style.display = 'block';
             const prompt = `Topic: "The ${currentSubject}". Generate a creative dataset and then a concise art prompt.\n\nFORMAT:\nDATA_START\nItem: Value\nDATA_END\nSOURCE_NAME: [Name]\nPROMPT_START\n[Crayon drawing prompt for a ${document.getElementById('graphStyle').value}]\nPROMPT_END`;
             try {
-                const data = await fetchWithRetry("https://api.openai.com/v1/responses", {
+                const data = await fetchWithRetry(OPENAI_PROXY_ENDPOINT, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                    body: JSON.stringify({ model: OPENAI_TEXT_MODEL, input: prompt })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint: "responses",
+                        payload: { model: OPENAI_TEXT_MODEL, input: prompt }
+                    })
                 });
                 console.log('[API] Raw response (machine2)', data);
                 console.log('[API] Output array (machine2)', data.output);
@@ -692,10 +695,13 @@
                     body.response_format = "b64_json";
                 }
 
-                const data = await fetchWithRetry("https://api.openai.com/v1/images/generations", {
+                const data = await fetchWithRetry(OPENAI_PROXY_ENDPOINT, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                    body: JSON.stringify(body)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint: "images/generations",
+                        payload: body
+                    })
                 });
 
                 const imageData = data.data?.[0]?.b64_json;
