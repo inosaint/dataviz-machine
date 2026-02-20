@@ -1,6 +1,8 @@
 [build]
   publish = "."
   functions = "netlify/functions"
+  # Manual deploys only - disable auto-build on push
+  ignore = "exit 0"
 
 [[headers]]
   for = "/*.html"
