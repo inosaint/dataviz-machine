@@ -459,6 +459,10 @@
         const OPENAI_PROXY_ENDPOINT = "/.netlify/functions/openai";
         const OPENAI_TEXT_MODEL = "gpt-5";
         const OPENAI_IMAGE_MODEL = "gpt-image-1";
+        const OPENAI_IMAGE_SIZE = "1024x1024";
+        const OPENAI_IMAGE_QUALITY = location.hostname === "localhost" ? "low" : "auto";
+        const OPENAI_IMAGE_FORMAT = "webp";
+        const OPENAI_IMAGE_COMPRESSION = location.hostname === "localhost" ? 50 : 70;
 
         async function fetchWithRetry(url, options, maxRetries = 5) {
             let delay = 1000;
@@ -691,11 +695,12 @@
                 const body = {
                     model: OPENAI_IMAGE_MODEL,
                     prompt: `${promptVal}, crayon style drawing`,
-                    size: "1024x1024"
+                    size: OPENAI_IMAGE_SIZE,
+                    quality: OPENAI_IMAGE_QUALITY,
+                    output_format: OPENAI_IMAGE_FORMAT,
+                    output_compression: OPENAI_IMAGE_COMPRESSION
                 };
-                if (OPENAI_IMAGE_MODEL.startsWith("dall-e")) {
-                    body.response_format = "b64_json";
-                }
+                body.response_format = "b64_json";
 
                 const data = await fetchWithRetry(OPENAI_PROXY_ENDPOINT, {
                     method: 'POST',
