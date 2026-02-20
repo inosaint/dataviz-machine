@@ -14,14 +14,21 @@
             --crayon-blue: #4d79ff;
             --crayon-green: #4dff88;
             --crayon-yellow: #fff200;
+            --crayon-orange: #ff9f43;
+            --crayon-purple: #a55eea;
             --crayon-black: #2c2c2c;
             --border-width: 3px;
+            --metal-light: #e8e8e8;
+            --metal-mid: #c0c0c0;
+            --metal-dark: #a0a0a0;
         }
 
         body {
             background-color: var(--paper-color);
-            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-image:
+                radial-gradient(#e0e0e0 1px, transparent 1px),
+                linear-gradient(45deg, transparent 48%, #f0ece4 48%, #f0ece4 52%, transparent 52%);
+            background-size: 20px 20px, 60px 60px;
             font-family: 'Gochi Hand', cursive;
             color: var(--crayon-black);
             margin: 0;
@@ -50,23 +57,76 @@
             padding: 20px;
             margin-bottom: 40px;
             transform: rotate(-2deg);
+            position: relative;
         }
-        
+
         header h1 {
             font-size: 3rem;
             text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
             color: var(--crayon-black);
         }
 
+        header .subtitle {
+            font-family: 'Gochi Hand', cursive;
+            font-size: 1rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* --- BRUSHED METAL PANELS --- */
         .machine-module {
-            background: white;
+            background:
+                linear-gradient(135deg, var(--metal-light) 0%, var(--metal-mid) 30%, var(--metal-light) 50%, var(--metal-dark) 70%, var(--metal-light) 100%);
             border: var(--border-width) solid var(--crayon-black);
             padding: 25px;
             position: relative;
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.15);
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6);
             transition: transform 0.2s ease;
             z-index: 2;
             border-radius: 20px;
+            animation: idleBreathe 4s ease-in-out infinite;
+        }
+
+        /* --- RIVETS --- */
+        .rivet-row {
+            position: absolute;
+            display: flex;
+            gap: 30px;
+            z-index: 4;
+        }
+        .rivet-row.top { top: 8px; left: 50%; transform: translateX(-50%); }
+        .rivet-row.bottom { bottom: 8px; left: 50%; transform: translateX(-50%); }
+        .rivet {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff, #bbb 40%, #888 100%);
+            border: 1px solid #777;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 0 1px 1px rgba(0,0,0,0.3);
+        }
+
+        /* --- DOODLE STICKERS --- */
+        .sticker {
+            position: absolute;
+            font-size: 1.4rem;
+            z-index: 5;
+            pointer-events: none;
+            filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.2));
+        }
+        .sticker-badge {
+            position: absolute;
+            z-index: 5;
+            padding: 2px 6px;
+            font-size: 0.55rem;
+            font-family: 'Patrick Hand SC', cursive;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: 2px solid var(--crayon-black);
+            border-radius: 4px;
+            transform: rotate(-8deg);
+            pointer-events: none;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
         }
 
         .machine-module::before, .machine-module::after {
@@ -77,8 +137,8 @@
             height: 15px;
             border-radius: 50%;
             border: 2px solid var(--crayon-black);
-            background: #ddd;
-            box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+            background: radial-gradient(circle at 35% 35%, #fff, #ccc);
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.1), inset 0 -2px 3px rgba(0,0,0,0.15);
         }
         .machine-module::before { left: 10px; }
         .machine-module::after { right: 10px; }
@@ -97,6 +157,7 @@
         }
         .machine-red h2 { color: #802a2a; }
 
+        /* --- IMPROVED PIPES WITH JOINTS --- */
         .connector-pipe {
             height: 60px;
             width: 40px;
@@ -108,7 +169,20 @@
             z-index: 1;
             background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);
         }
-        
+
+        .connector-pipe .pipe-joint {
+            position: absolute;
+            width: 56px;
+            height: 12px;
+            background: linear-gradient(180deg, #ccc, #999);
+            border: 2px solid var(--crayon-black);
+            border-radius: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .connector-pipe .pipe-joint.top { top: -2px; }
+        .connector-pipe .pipe-joint.bottom { bottom: -2px; }
+
         .connector-pipe.flowing {
             background-image: repeating-linear-gradient(45deg, var(--crayon-yellow), var(--crayon-yellow) 10px, var(--paper-color) 10px, var(--paper-color) 20px);
             animation: flowPipe 1s linear infinite;
@@ -123,7 +197,7 @@
             stroke-linejoin: round;
             overflow: visible;
         }
-        
+
         .gear-sm { width: 35px; height: 35px; top: -17px; right: 40px; }
         .gear-md { width: 55px; height: 55px; bottom: -25px; left: -25px; fill: #d4d4d4; }
         .gear-lg { width: 80px; height: 80px; top: 50%; right: -40px; fill: #ccc; }
@@ -143,7 +217,7 @@
         }
         .status-light.processing { background-color: var(--crayon-yellow); box-shadow: 0 0 10px var(--crayon-yellow); animation: blink 0.5s infinite alternate; }
         .status-light.done { background-color: var(--crayon-green); box-shadow: 0 0 5px var(--crayon-green); }
-        
+
         .chimney { position: absolute; top: -20px; left: 20px; width: 20px; height: 30px; background: #333; border: 2px solid black; transform: skew(-5deg); }
         .smoke { position: absolute; top: -30px; left: 20px; font-size: 20px; opacity: 0; pointer-events: none; }
         .puffing .smoke { animation: rise 2s infinite; }
@@ -152,6 +226,34 @@
 
         .explosion-particle { position: absolute; width: 30px; height: 30px; background: #555; border-radius: 50%; opacity: 0; z-index: 10; }
         .exploding .explosion-particle { animation: explode 0.8s ease-out forwards; }
+
+        /* --- LED READOUT DISPLAY --- */
+        .led-readout {
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 6px;
+            padding: 6px 12px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #0f0;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 6px #0f0;
+            min-height: 1.2em;
+            overflow: hidden;
+            white-space: nowrap;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+        }
+
+        /* --- PRESSURE GAUGE --- */
+        .pressure-gauge {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 80px;
+            height: 80px;
+        }
+        .pressure-gauge svg { width: 100%; height: 100%; }
 
         .input-group { margin: 15px 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 1.4rem; }
 
@@ -165,6 +267,11 @@
             outline: none;
             min-width: 100px;
             box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--crayon-blue);
+            box-shadow: 0 0 0 3px rgba(77,121,255,0.2), 2px 2px 0 rgba(0,0,0,0.1);
         }
 
         button {
@@ -182,9 +289,46 @@
             position: relative;
             overflow: hidden;
         }
-        
-        button:hover { transform: translateY(-2px); }
+
+        button:hover { transform: translateY(-2px); box-shadow: 6px 6px 0px rgba(0,0,0,0.2); }
         button:active { transform: translateY(2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.2); }
+
+        /* --- BIG START BUTTON --- */
+        .btn-start {
+            background: radial-gradient(circle at 40% 35%, #ff6b6b, #ee2222 60%, #aa0000);
+            color: white;
+            border: 4px solid #600;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            font-size: 1.1rem;
+            padding: 0;
+            margin: 20px auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow:
+                0 6px 0 #800,
+                0 8px 12px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            transition: all 0.1s;
+            line-height: 1.2;
+        }
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 0 #800,
+                0 10px 16px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+        .btn-start:active {
+            transform: translateY(4px);
+            box-shadow:
+                0 2px 0 #800,
+                0 3px 6px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
 
         .btn-blue { background-color: var(--crayon-blue); color: white; }
         .btn-green { background-color: var(--crayon-green); color: var(--crayon-black); }
@@ -271,6 +415,82 @@
         .trust-meter-shell svg { width: 100%; height: auto; }
         .trust-label { position: absolute; top: 185px; right: 20px; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.2em; text-transform: uppercase; }
 
+        /* --- RESET BUTTON --- */
+        .reset-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .btn-reset {
+            background: #444;
+            color: #ccc;
+            border: 3px solid #222;
+            border-radius: 12px;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            width: auto;
+            display: inline-block;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .btn-reset:hover { background: #555; color: #fff; }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            font-family: 'Patrick Hand SC', cursive;
+            font-size: 1rem;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: 2px solid var(--crayon-black);
+            color: var(--crayon-black);
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
+            animation: toastIn 0.4s ease-out, toastOut 0.4s 2.6s ease-in forwards;
+            max-width: 280px;
+        }
+        .toast-info { background: var(--crayon-blue); color: white; }
+        .toast-success { background: var(--crayon-green); }
+        .toast-warning { background: var(--crayon-orange); }
+
+        /* --- PROGRESS BAR --- */
+        .progress-track {
+            width: 100%;
+            height: 14px;
+            background: #ddd;
+            border: 2px solid #333;
+            border-radius: 8px;
+            margin-top: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: repeating-linear-gradient(
+                -45deg,
+                var(--crayon-yellow),
+                var(--crayon-yellow) 8px,
+                var(--crayon-orange) 8px,
+                var(--crayon-orange) 16px
+            );
+            background-size: 22px 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            animation: progressStripe 0.8s linear infinite;
+        }
+
+        /* --- IDLE ANIMATIONS --- */
+        @keyframes idleBreathe {
+            0%, 100% { box-shadow: 8px 8px 0px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6); }
+            50% { box-shadow: 8px 8px 0px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 20px rgba(0,0,0,0.04); }
+        }
+
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes flowPipe { 0% { background-position: 0 0; } 100% { background-position: 0 30px; } }
         @keyframes blink { 0% { opacity: 0.5; } 100% { opacity: 1; } }
@@ -279,8 +499,13 @@
         @keyframes rumble { 0% { transform: translate(0, 0) rotate(1deg); } 25% { transform: translate(-2px, 2px) rotate(1deg); } 50% { transform: translate(2px, -2px) rotate(1deg); } 75% { transform: translate(-2px, -2px) rotate(1deg); } 100% { transform: translate(0, 0) rotate(1deg); } }
         @keyframes printPaper { 0% { transform: translateY(-100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(3); opacity: 0; } }
-        .rumbling { animation: rumble 0.2s infinite; }
+        .rumbling { animation: rumble 0.2s infinite !important; }
         @keyframes developPhoto { 0% { filter: blur(6px) grayscale(100%) sepia(10%); opacity: 0.2; } 100% { filter: blur(0) grayscale(0%) sepia(0%); opacity: 1; } }
+        @keyframes progressStripe { 0% { background-position: 0 0; } 100% { background-position: 22px 0; } }
+        @keyframes toastIn { 0% { transform: translateX(120%); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(120%); opacity: 0; } }
+        @keyframes needlePulse { 0%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 3px rgba(255,0,0,0.4)); } }
+
         .accordion {
             margin-top: 20px;
         }
@@ -343,12 +568,22 @@
         </defs>
     </svg>
 
-    <header><h1>🔥 DataViz Machine v2.0 🔥</h1></header>
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <header>
+        <h1>DataViz Machine v2.0</h1>
+        <div class="subtitle">~ a contraption for nonsensical data art ~</div>
+    </header>
 
     <div class="container">
-        <!-- MODULE 1 -->
+        <!-- MODULE 1: DATA ENGINE -->
         <div class="machine-module machine-blue" id="machine1">
-            <div class="chimney"></div><div class="smoke">☁️</div><div class="smoke">☁️</div><div class="smoke">☁️</div>
+            <div class="rivet-row top"><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div></div>
+            <div class="rivet-row bottom"><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div></div>
+            <span class="sticker" style="top:-14px; left:55px; transform:rotate(12deg);">&#9881;</span>
+            <span class="sticker-badge" style="bottom:10px; left:10px; background:var(--crayon-yellow); color:#333;">CAUTION: HOT DATA</span>
+            <div class="chimney"></div><div class="smoke">&#9729;</div><div class="smoke">&#9729;</div><div class="smoke">&#9729;</div>
             <svg class="gear gear-sm" viewBox="0 0 220 220"><use href="#crayon-gear"></use></svg>
             <div class="status-light" id="light1"></div>
             <div class="ethics-control"><div class="ethics-label">ETHICS</div><div class="toggle-switch" onclick="toggleEthics(this)"><div class="toggle-knob"></div></div></div>
@@ -373,8 +608,25 @@
                     <option value="hand-drawn geomap">Geomap</option>
                 </select>
             </div>
-            <button class="btn-blue" onclick="runMachine1()">Start 🔘</button>
+            <button class="btn-start" onclick="runMachine1()">START</button>
+            <div class="led-readout" id="readout1">IDLE... AWAITING INSTRUCTIONS</div>
+            <div class="progress-track" id="progressTrack1" style="display:none;"><div class="progress-fill" id="progressFill1"></div></div>
             <div id="loader1" class="loading-text">Engines roaring... fetching data...</div>
+
+            <!-- Pressure Gauge -->
+            <div class="pressure-gauge">
+                <svg viewBox="0 0 100 100" role="img" aria-label="Data pressure gauge">
+                    <circle cx="50" cy="50" r="44" fill="#222" stroke="#444" stroke-width="3"/>
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="#555" stroke-width="1"/>
+                    <path d="M20 65 A35 35 0 0 1 80 65" fill="none" stroke="#0f0" stroke-width="2" opacity="0.4"/>
+                    <g id="pressureNeedle" transform="rotate(-90 50 55)">
+                        <line x1="50" y1="55" x2="50" y2="22" stroke="#ff3333" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <circle cx="50" cy="55" r="4" fill="#888"/>
+                    <text x="50" y="85" text-anchor="middle" fill="#0f0" font-size="7" font-family="monospace">PSI</text>
+                </svg>
+            </div>
+
             <div class="accordion">
                 <button class="accordion-header" type="button" aria-expanded="false" aria-controls="accordionBody1" data-target="accordionBody1">View dataset</button>
                 <div id="accordionBody1" class="accordion-body">
@@ -384,16 +636,23 @@
             </div>
         </div>
 
-        <div class="connector-pipe" id="pipe1"></div>
+        <div class="connector-pipe" id="pipe1">
+            <div class="pipe-joint top"></div>
+            <div class="pipe-joint bottom"></div>
+        </div>
 
-        <!-- MODULE 2 -->
+        <!-- MODULE 2: ART LOGIC UNIT -->
         <div class="machine-module machine-green" id="machine2" style="opacity: 0.7; pointer-events: none;">
+            <div class="rivet-row top"><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div></div>
+            <div class="rivet-row bottom"><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div></div>
+            <span class="sticker" style="top:-12px; right:120px; transform:rotate(-6deg);">&#9733;</span>
+            <span class="sticker-badge" style="bottom:12px; right:10px; background:var(--crayon-green); color:#1a5c2a;">100% ORGANIC ART</span>
             <svg class="gear gear-md" viewBox="0 0 220 220"><use href="#crayon-gear"></use></svg>
             <div class="status-light" id="light2"></div>
-            <div class="verified-badge"><span class="verified-text">DATA VERIFIED</span><div class="verified-bulb"></div></div>
+            <div class="verified-badge"><span class="verified-text" id="verifiedLabel">DATA VERIFIED</span><div class="verified-bulb"></div></div>
             <h2>2. Art Logic Unit</h2>
             <p style="font-size: 0.9rem;">Translating raw data into artistic instructions...</p>
-            <p style="font-size: 0.85rem; margin: 10px 0 0;"></p>
+            <div class="led-readout" id="readout2">STANDBY</div>
             <div id="loader2" class="loading-text">Computing artistic variables...</div>
             <div class="accordion">
                 <button class="accordion-header" type="button" aria-expanded="false" aria-controls="accordionBody2" data-target="accordionBody2">View art prompt</button>
@@ -405,10 +664,16 @@
             </div>
         </div>
 
-        <div class="connector-pipe" id="pipe2"></div>
+        <div class="connector-pipe" id="pipe2">
+            <div class="pipe-joint top"></div>
+            <div class="pipe-joint bottom"></div>
+        </div>
 
-        <!-- MODULE 3 -->
+        <!-- MODULE 3: THE PRINTER -->
         <div class="machine-module machine-red" id="machine3" style="opacity: 0.7; pointer-events: none;">
+            <div class="rivet-row top"><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div><div class="rivet"></div></div>
+            <span class="sticker" style="bottom:12px; left:12px; transform:rotate(5deg); font-size:1.6rem;">&#9760;</span>
+            <span class="sticker-badge" style="top:70px; left:10px; background:var(--crayon-red); color:#fff;">DANGER: INK SPILLS</span>
             <svg class="gear gear-lg" viewBox="0 0 220 220"><use href="#crayon-gear"></use></svg>
             <div class="status-light" id="light3"></div>
             <div class="trust-meter-shell">
@@ -437,6 +702,7 @@
             </div>
             <h2 style="margin-right: 120px;">3. The Printer</h2>
             <p style="font-size: 0.9rem; margin-right: 120px;">Rendering pixels onto virtual paper...</p>
+            <div class="led-readout" id="readout3">STANDBY</div>
             <div id="loader3" class="loading-text">Ink levels low... printing anyway...</div>
         </div>
 
@@ -452,6 +718,11 @@
                     <button id="downloadBtn" class="btn-download" style="display:none;" onclick="downloadImage()">Download</button>
                 </div>
             </div>
+        </div>
+
+        <!-- RESET BUTTON -->
+        <div class="reset-section">
+            <button class="btn-reset" onclick="resetMachine()">RESET MACHINE</button>
         </div>
     </div>
 
@@ -493,7 +764,7 @@
 
         let currentDataset = "", currentSubject = "", currentSourceInfo = "";
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
+
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
@@ -505,18 +776,153 @@
             else if (type === 'explosion') { const bufferSize = audioCtx.sampleRate * 0.5, buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate), data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; const noise = audioCtx.createBufferSource(); noise.buffer = buffer; const noiseGain = audioCtx.createGain(); noise.connect(noiseGain); noiseGain.connect(audioCtx.destination); noiseGain.gain.setValueAtTime(0.2, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5); noise.start(now); }
         }
 
-        function toggleEthics(el) { el.classList.toggle('on'); playSound('click'); }
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3200);
+        }
 
+        // --- LED READOUT CYCLING ---
+        const readoutIntervals = {};
+        const readoutMessages = {
+            1: {
+                idle: ["IDLE... AWAITING INSTRUCTIONS", "FEED ME DATA", "PRESS THE BIG RED BUTTON", "BORED... SO BORED"],
+                running: ["CRUNCHING NUMBERS...", "CONSULTING THE ORACLE...", "WARMING UP HAMSTER WHEELS...", "LOADING DATA CRYSTALS..."],
+            },
+            2: {
+                idle: ["STANDBY", "WAITING FOR DATA PIPE...", "ART CIRCUITS COLD"],
+                running: ["TRANSLATING DATA TO ART...", "APPLYING CRAYON LOGIC...", "CONSULTING BOB ROSS AI...", "MIXING DIGITAL PAINT..."],
+            },
+            3: {
+                idle: ["STANDBY", "PRINTER NAPPING...", "INK LEVELS: QUESTIONABLE"],
+                running: ["WARMING UP INK JETS...", "SUMMONING PIXELS...", "SHAKING TONER CARTRIDGE...", "PRINTING... MAYBE..."],
+            }
+        };
+
+        function startReadoutCycle(machineId, mode) {
+            stopReadoutCycle(machineId);
+            const el = document.getElementById(`readout${machineId}`);
+            if (!el) return;
+            const msgs = readoutMessages[machineId]?.[mode] || ["..."];
+            let idx = 0;
+            el.textContent = msgs[0];
+            readoutIntervals[machineId] = setInterval(() => {
+                idx = (idx + 1) % msgs.length;
+                el.textContent = msgs[idx];
+            }, 2500);
+        }
+
+        function stopReadoutCycle(machineId) {
+            if (readoutIntervals[machineId]) {
+                clearInterval(readoutIntervals[machineId]);
+                delete readoutIntervals[machineId];
+            }
+        }
+
+        function setReadout(machineId, text) {
+            stopReadoutCycle(machineId);
+            const el = document.getElementById(`readout${machineId}`);
+            if (el) el.textContent = text;
+        }
+
+        // --- PRESSURE GAUGE ---
+        function updatePressureGauge(angle) {
+            const needle = document.getElementById('pressureNeedle');
+            if (needle) needle.setAttribute('transform', `rotate(${angle} 50 55)`);
+        }
+
+        let pressureWiggleId = null;
+        function startPressureWiggle() {
+            if (pressureWiggleId) return;
+            let angle = -90;
+            let dir = 1;
+            pressureWiggleId = setInterval(() => {
+                angle += dir * 5;
+                if (angle > 40) dir = -1;
+                if (angle < -90) dir = 1;
+                updatePressureGauge(angle);
+            }, 80);
+        }
+        function stopPressureWiggle(finalAngle) {
+            if (pressureWiggleId) { clearInterval(pressureWiggleId); pressureWiggleId = null; }
+            updatePressureGauge(finalAngle);
+        }
+
+        // --- VERIFIED BADGE CYCLING ---
+        const verifiedPhrases = ["DATA VERIFIED", "SEEMS LEGIT", "TRUST ME BRO", "CERTIFIED FRESH", "PEER REVIEWED*"];
+        let verifiedIdx = 0;
+        let verifiedCycleId = null;
+        function startVerifiedCycle() {
+            if (verifiedCycleId) return;
+            verifiedCycleId = setInterval(() => {
+                verifiedIdx = (verifiedIdx + 1) % verifiedPhrases.length;
+                const el = document.getElementById('verifiedLabel');
+                if (el) el.textContent = verifiedPhrases[verifiedIdx];
+            }, 3000);
+        }
+        function stopVerifiedCycle() {
+            if (verifiedCycleId) { clearInterval(verifiedCycleId); verifiedCycleId = null; }
+        }
+
+        // --- PROGRESS BAR ---
+        function showProgress(machineId) {
+            const track = document.getElementById(`progressTrack${machineId}`);
+            if (track) track.style.display = 'block';
+        }
+        function setProgress(machineId, pct) {
+            const fill = document.getElementById(`progressFill${machineId}`);
+            if (fill) fill.style.width = pct + '%';
+        }
+        function hideProgress(machineId) {
+            const track = document.getElementById(`progressTrack${machineId}`);
+            if (track) track.style.display = 'none';
+            setProgress(machineId, 0);
+        }
+
+        // --- ETHICS TOGGLE ---
+        let ethicsOn = false;
+        function toggleEthics(el) {
+            el.classList.toggle('on');
+            ethicsOn = el.classList.contains('on');
+            playSound('click');
+            if (ethicsOn) {
+                showToast("Ethics module: ON (results may vary)", "success");
+            } else {
+                showToast("Ethics module: OFF (chaos mode)", "warning");
+            }
+        }
+
+        // --- MACHINE STATE ---
         function setMachineState(machineId, state) {
             const machine = document.getElementById(`machine${machineId}`), light = document.getElementById(`light${machineId}`), gears = machine.querySelectorAll('.gear');
-            if (state === 'running') { machine.classList.add('rumbling'); if(machineId === 1) machine.classList.add('puffing'); light.classList.remove('done'); light.classList.add('processing'); gears.forEach(g => g.classList.add('spinning')); playSound('motor'); }
-            else if (state === 'done') { machine.classList.remove('rumbling', 'puffing'); light.classList.remove('processing'); light.classList.add('done'); gears.forEach(g => g.classList.remove('spinning')); playSound('print'); }
-            else { machine.classList.remove('rumbling', 'puffing'); light.classList.remove('processing', 'done'); gears.forEach(g => g.classList.remove('spinning')); }
+            if (state === 'running') {
+                machine.classList.add('rumbling');
+                if (machineId === 1) machine.classList.add('puffing');
+                light.classList.remove('done'); light.classList.add('processing');
+                gears.forEach(g => g.classList.add('spinning'));
+                playSound('motor');
+                startReadoutCycle(machineId, 'running');
+            } else if (state === 'done') {
+                machine.classList.remove('rumbling', 'puffing');
+                light.classList.remove('processing'); light.classList.add('done');
+                gears.forEach(g => g.classList.remove('spinning'));
+                playSound('print');
+                stopReadoutCycle(machineId);
+            } else {
+                machine.classList.remove('rumbling', 'puffing');
+                light.classList.remove('processing', 'done');
+                gears.forEach(g => g.classList.remove('spinning'));
+                startReadoutCycle(machineId, 'idle');
+            }
         }
 
         function triggerSmokeExplosion() {
             const container = document.getElementById('machine3'); playSound('explosion');
-            for(let i=0; i<8; i++) {
+            for (let i = 0; i < 8; i++) {
                 const p = document.createElement('div'); p.className = 'explosion-particle'; p.style.left = '50%'; p.style.top = '50%';
                 const tx = (Math.random() - 0.5) * 200 + 'px', ty = (Math.random() - 0.5) * 200 + 'px';
                 p.style.setProperty('--tx', tx); p.style.setProperty('--ty', ty); container.appendChild(p); container.classList.add('exploding'); setTimeout(() => p.remove(), 1000);
@@ -592,29 +998,108 @@
             if (!img?.src) return;
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = `dataviz-${(currentSubject || 'visual').replace(/\\s+/g, '-').toLowerCase()}.png`;
+            link.download = `dataviz-${(currentSubject || 'visual').replace(/\s+/g, '-').toLowerCase()}.png`;
             document.body.appendChild(link);
             link.click();
             link.remove();
         }
 
+        // --- RESET MACHINE ---
+        function resetMachine() {
+            playSound('click');
+
+            // Reset state
+            currentDataset = "";
+            currentSubject = "";
+            currentSourceInfo = "";
+
+            // Reset Module 2 & 3 visibility
+            const m2 = document.getElementById('machine2');
+            const m3 = document.getElementById('machine3');
+            m2.style.opacity = '0.7'; m2.style.pointerEvents = 'none';
+            m3.style.opacity = '0.7'; m3.style.pointerEvents = 'none';
+
+            // Reset pipes
+            document.getElementById('pipe1').classList.remove('flowing');
+            document.getElementById('pipe2').classList.remove('flowing');
+
+            // Reset lights & gears
+            [1, 2, 3].forEach(id => setMachineState(id, 'idle'));
+
+            // Reset outputs
+            document.getElementById('output1').textContent = '';
+            document.getElementById('sourceContainer').innerHTML = '';
+            document.getElementById('promptOutput').value = '';
+
+            // Reset printed paper
+            const paper = document.getElementById('paperSheet');
+            paper.style.display = 'none';
+            paper.classList.remove('developing');
+            document.getElementById('generatedImage').src = '';
+            document.getElementById('generatedImage').alt = 'Waiting for print job...';
+            const dlBtn = document.getElementById('downloadBtn');
+            if (dlBtn) dlBtn.style.display = 'none';
+
+            // Reset gauges
+            updateTrustNeedle(-90);
+            stopTrustWiggle(-90);
+            stopPressureWiggle(-90);
+            hideProgress(1);
+
+            // Reset readouts
+            startReadoutCycle(1, 'idle');
+            setReadout(2, 'STANDBY');
+            setReadout(3, 'STANDBY');
+
+            // Reset loaders
+            document.getElementById('loader1').style.display = 'none';
+            document.getElementById('loader2').style.display = 'none';
+            document.getElementById('loader3').style.display = 'none';
+
+            updatePrintMeta();
+            showToast("Machine reset! Ready for another round.", "info");
+            smoothScrollTo('machine1');
+        }
+
+        // --- MACHINE PIPELINE ---
         async function runMachine1() {
             playSound('click');
-            const adj = document.getElementById('inpAdjective').value || "average", noun = document.getElementById('inpNoun').value || "objects", prep = document.getElementById('inpPrep').value, context = document.getElementById('inpContext').value || "the void";
+            const adj = document.getElementById('inpAdjective').value || "average";
+            const noun = document.getElementById('inpNoun').value || "objects";
+            const prep = document.getElementById('inpPrep').value;
+            const context = document.getElementById('inpContext').value || "the void";
             currentSubject = `${adj} ${noun} ${prep} ${context}`;
+
             setMachineState(1, 'running');
             document.getElementById('loader1').style.display = 'block';
             document.getElementById('sourceContainer').innerHTML = '';
             currentSourceInfo = "";
             currentDataset = "";
 
+            showProgress(1);
+            setProgress(1, 20);
+            startPressureWiggle();
+            showToast("Data Engine fired up!", "info");
+
             ensureSource();
+            setProgress(1, 60);
             document.getElementById('output1').textContent = `Subject locked: The ${currentSubject}`;
             updatePrintMeta();
-            setMachineState(1, 'done'); document.getElementById('pipe1').classList.add('flowing');
-            const m2 = document.getElementById('machine2'); m2.style.opacity = '1'; m2.style.pointerEvents = 'auto';
+
+            setProgress(1, 100);
+            setTimeout(() => hideProgress(1), 600);
+            stopPressureWiggle(30);
+
+            setMachineState(1, 'done');
+            setReadout(1, `LOCKED: THE ${currentSubject.toUpperCase()}`);
+            document.getElementById('pipe1').classList.add('flowing');
+
+            const m2 = document.getElementById('machine2');
+            m2.style.opacity = '1'; m2.style.pointerEvents = 'auto';
             smoothScrollTo('machine2');
             document.getElementById('loader1').style.display = 'none';
+
+            showToast("Data piped to Art Logic Unit", "success");
             runMachine2();
         }
 
@@ -622,6 +1107,8 @@
             playSound('click');
             setMachineState(2, 'running');
             document.getElementById('loader2').style.display = 'block';
+            startVerifiedCycle();
+
             const prompt = `Topic: "The ${currentSubject}". Generate a creative dataset and then a concise art prompt.\n\nFORMAT:\nDATA_START\nItem: Value\nDATA_END\nSOURCE_NAME: [Name]\nPROMPT_START\n[Crayon drawing prompt for a ${document.getElementById('graphStyle').value}]\nPROMPT_END`;
             try {
                 const data = await fetchWithRetry(OPENAI_PROXY_ENDPOINT, {
@@ -675,22 +1162,36 @@
                 } else {
                     document.getElementById('promptOutput').value = text.trim();
                 }
-                setMachineState(2, 'done'); document.getElementById('pipe2').classList.add('flowing');
+
+                setMachineState(2, 'done');
+                setReadout(2, "ART INSTRUCTIONS COMPILED");
+                stopVerifiedCycle();
+                showToast("Art prompt generated!", "success");
+
+                document.getElementById('pipe2').classList.add('flowing');
                 const m3 = document.getElementById('machine3'); m3.style.opacity = '1'; m3.style.pointerEvents = 'auto';
                 smoothScrollTo('machine3');
                 runMachine3();
-            } catch (error) { setMachineState(2, 'idle'); } finally { document.getElementById('loader2').style.display = 'none'; }
+            } catch (error) {
+                setMachineState(2, 'idle');
+                setReadout(2, "ERROR: " + error.message.substring(0, 40));
+                stopVerifiedCycle();
+                showToast("Art Logic Unit error!", "warning");
+            } finally {
+                document.getElementById('loader2').style.display = 'none';
+            }
         }
 
         async function runMachine3() {
             playSound('click');
             const promptVal = document.getElementById('promptOutput').value;
             if (!promptVal) return;
-            
+
             setMachineState(3, 'running');
             document.getElementById('loader3').style.display = 'block';
             startTrustWiggle();
-            
+            showToast("Printer warming up...", "info");
+
             try {
                 const body = {
                     model: OPENAI_IMAGE_MODEL,
@@ -720,14 +1221,16 @@
                 const dlBtn = document.getElementById('downloadBtn');
                 if (dlBtn) dlBtn.style.display = 'inline-block';
                 setMachineState(3, 'done');
+                setReadout(3, "PRINT COMPLETE!");
                 triggerSmokeExplosion();
                 stopTrustWiggle(45);
+                showToast("Masterpiece printed!", "success");
                 smoothScrollTo('generatedImage', 'center');
                 setTimeout(() => {
                     document.getElementById('paperSheet').classList.remove('developing');
                 }, 4500);
 
-            } catch (error) { 
+            } catch (error) {
                 console.error("Image Error:", error);
                 const outputSlot = document.createElement('div');
                 outputSlot.style.color = 'red';
@@ -735,13 +1238,19 @@
                 outputSlot.textContent = "Error: " + error.message;
                 document.getElementById('machine3').appendChild(outputSlot);
                 stopTrustWiggle(-80);
-                setMachineState(3, 'idle'); 
-            } finally { 
-                document.getElementById('loader3').style.display = 'none'; 
+                setMachineState(3, 'idle');
+                setReadout(3, "PRINT FAILED");
+                showToast("Printer jammed!", "warning");
+            } finally {
+                document.getElementById('loader3').style.display = 'none';
             }
         }
+
+        // --- INIT ---
         updateTrustNeedle(-90);
+        updatePressureGauge(-90);
         registerAccordions();
+        startReadoutCycle(1, 'idle');
     </script>
 </body>
 </html>
